@@ -975,8 +975,14 @@ static int print_tnt_payload(struct ptdump_buffer *buffer, uint64_t offset,
 	uint8_t bits;
 	char *begin, *end;
 
+
+
 	if (!buffer || !packet)
 		return diag("error printing payload", offset, -pte_internal);
+
+	FILE * tnt_out_fp = fopen("tnt_dump","a+");
+	if (! tnt_out_fp)
+		return diag("error opening dump file", offset, -pte_internal);
 
 	bits = packet->bit_size;
 	tnt = packet->payload;
@@ -991,7 +997,12 @@ static int print_tnt_payload(struct ptdump_buffer *buffer, uint64_t offset,
 	}
 
 	for (; begin < end; ++begin, --bits)
+	{
 		*begin = tnt & (1ull << (bits - 1)) ? '!' : '.';
+		fwrite(tnt & (1ull << (bits - 1)) ? "\x00" : "\xFF", 1,1,tnt_out_fp);
+	}
+
+	fclose(tnt_out_fp);
 
 	return 0;
 }
